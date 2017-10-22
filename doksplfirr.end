@@ -1,0 +1,56 @@
+<?php
+
+$all=false;
+if ($ipole<0) {
+	$ipole=-$ipole;		//przywróæ prawid³owy znak $ipole
+	$all=true;		//wszystko trzeba obliczyæ
+}
+
+if ($ipole==0) {
+	$zz="Select ID from tabele where NAZWA='doksplfirr'";
+	$ww=mysql_query($zz); $ww=mysql_fetch_row($ww); $ww=$ww[0];
+
+	$zz="Select ID_POZYCJI from tabeles where ID_TABELE=$ww and ID_OSOBY=$ido";	//jest ID firmy
+	$ww=mysql_query($zz); $ww=mysql_fetch_row($ww); $ipole=$ww[0];
+}
+
+$zz="select ID_D, ID_F from dokspl where ID=$ipole";
+$ww=mysql_query($zz);
+$ww=mysql_fetch_row($ww);
+$id_d=$ww[0];
+$id_f=$ww[1];
+
+$zz="select sum(KWOTA) from dokspl where ID_D=$id_d";
+$ww=mysql_query($zz);
+$ww=mysql_fetch_row($ww);
+$ww=$ww[0];
+
+//$zz="update dokum SET WPLACONO=if(WPLACONO>$ww,WPLACONO,$ww) where ID=$id_d";
+$zz="update dokum SET WPLACONO=$ww where ID=$id_d";
+$ww=mysql_query($zz);
+
+$zz="select sum(WARTOSC-WPLACONO) from dokum where NABYWCA=$id_f";
+$zz.=' and WARTOSC<>WPLACONO and TYP="FV" and BLOKADA=""';
+$ww=mysql_query($zz);
+$ww=mysql_fetch_row($ww);
+$ww=$ww[0];
+
+if (!$ww) {$ww=0;}
+
+$zz="update firmy SET NALEZNOSCI=$ww where ID=$id_f";
+$ww=mysql_query($zz);
+
+$zz="select sum(WARTOSC-WPLACONO) from dokum where NABYWCA=$id_f";
+$zz.=' and WARTOSC<>WPLACONO and TYP="FVK" and BLOKADA=""';
+$ww=mysql_query($zz);
+$ww=mysql_fetch_row($ww);
+$ww=$ww[0];
+
+if (!$ww) {$ww=0;}
+
+$zz="update firmy SET KOREKTY=-$ww where ID=$id_f";
+$ww=mysql_query($zz);
+
+$zz="delete from dokspl where KWOTA=0 and ID_F=$id_f";
+$ww=mysql_query($zz);
+?>

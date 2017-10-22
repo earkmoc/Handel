@@ -1,0 +1,8 @@
+<?php
+
+$tabelaa='spec_FW';
+$tabelad='dokum_FW';
+
+require('spec_calc.php');
+
+?>

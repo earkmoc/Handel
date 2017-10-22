@@ -1,0 +1,9 @@
+<?php
+
+$tabelaa='spec_FD';
+$tabelaa='towaryw_FD';
+$tabelad='dokum_FD';
+
+require('spec_calc.php');
+
+?>

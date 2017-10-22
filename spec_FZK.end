@@ -1,0 +1,8 @@
+<?php
+
+$tabelaa='spec_FZK';
+$tabelad='dokum_FZK';
+
+require('spec_calc.php');
+
+?>

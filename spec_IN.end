@@ -1,0 +1,8 @@
+<?php
+
+$tabelaa='spec_IN';
+$tabelad='dokum_IN';
+
+require('spec_calc.php');
+
+?>

@@ -1,0 +1,8 @@
+<?php
+
+$tabelaa='spec_FVKP';
+$tabelad='dokum_FVK';
+
+require('spec_calc.php');
+
+?>

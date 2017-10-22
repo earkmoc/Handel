@@ -1,0 +1,20 @@
+<?
+
+$all=false;
+if ($ipole<0) {		//wymuszenie
+	$ipole=-$ipole;
+	$all=true;
+}
+
+$zz="select * from dokumentr where ID=$ipole";
+$ww=mysql_query($zz);
+$ww=mysql_fetch_array($ww);
+
+if ($all || $ww['NETTO']==0.00) {$ww['NETTO']=round($ww['KWOTA']*$ww['KURS'],2);}
+if ($all || $ww['VAT']==0.00) {$ww['VAT']=round($ww['NETTO']*$ww['STAWKA']*0.01,2);}
+if ($all || $ww['BRUTTO']==0.00) {$ww['BRUTTO']=round($ww['NETTO']+$ww['VAT'],2);}
+
+$zz="update dokumentr SET KTO=$osoba_id, CZAS=Now(), NETTO='".$ww['NETTO']."', VAT='".$ww['VAT']."', BRUTTO='".$ww['BRUTTO']."' where ID=$ipole";
+//$zz="update dokumentr SET KTO=$osoba_id, CZAS=Now(), NETTO=KWOTA*KURS, VAT=NETTO*STAWKA*0.01, BRUTTO=NETTO+VAT where ID=$ipole";
+$ww=mysql_query($zz);
+?>

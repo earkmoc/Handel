@@ -1,0 +1,9 @@
+<?php
+
+$tabelaa='spec';
+//$tabelaa='towarywyb';
+$tabelad='dokum';
+
+require('spec_calc.php');
+
+?>

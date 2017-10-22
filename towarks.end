@@ -1,0 +1,28 @@
+<?php
+
+if ($ipole==0) {
+	$z="Select ID from tabele where NAZWA='towarks'";
+	$w=mysql_query($z); $w=mysql_fetch_row($w); $w=$w[0];
+
+	$z="Select ID_POZYCJI from tabeles where ID_TABELE=$w and ID_OSOBY=$ido";	//jest ID dokum
+	$w=mysql_query($z); $w=mysql_fetch_row($w);
+	$ipole=$w[0];
+}
+
+$z="select ID_K from towarks where ID=$ipole limit 1";
+$w=mysql_query($z); $w=mysql_fetch_row($w);
+$idd=$w[0];
+
+if ($idd) {
+	$z="select sum(round(NAKLAD*CENA,2)) from towarks where ID_K=$idd";
+	$w=mysql_query($z); $w=mysql_fetch_row($w); $w=$w[0];
+
+	$z="update towark set WARTOSC=$w where ID=$idd limit 1";
+	$w=mysql_query($z);
+}
+
+$tabelaa='towarks';	// tu l¹duje po akcji
+
+//echo $raport;
+?>
+

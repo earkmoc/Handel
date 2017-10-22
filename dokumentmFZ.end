@@ -1,0 +1,103 @@
+<?
+
+//obliczenie jednej pozycji specyfikacji magazynowej dokumentu
+
+if ($ipole<>0) {
+require('funkcje.php');
+$all=false;
+if ($ipole<0) {		//wymuszenie
+	$ipole=-$ipole;
+	$all=true;
+}
+
+$zz="select ID_D, CLO_PROC, KURS, WALUTA from dokumentm where ID=$ipole";
+$ww=mysql_query($zz);
+$ww=mysql_fetch_row($ww);
+$id_d=$ww[0];
+$clo=$ww[1];
+$kur=$ww[2]*1;
+$wal=$ww[3];
+
+$zz="select CLO_PROC, KURSC, WALUTA from dokumenty where ID=$id_d";$ww=mysql_query($zz);$ww=mysql_fetch_row($ww);
+$clo=$ww[0];
+$kur=$ww[1];
+$wal=$ww[2];
+
+if (!$all) {
+	$zz="update dokumentm SET CENA=CENABEZR-CENABEZR*RABAT*0.01, NETTO=round(CENA*ILOSC+0.000000001,2), WALUTA=if('$wal'='','z³','$wal'), KURS=if($kur=0,1,$kur), KWOTA=if(KWOTA=0,round(CENA*ILOSC+0.000000001,2),KWOTA) where ID=$ipole"; $ww=mysql_query($zz);
+	if ($clo*1==0) {	//bez c³a
+		$zz="update dokumentm SET KTO=$osoba_id, CZAS=Now(), NETTO_SAD=KWOTA*KURS, CLO_PODST=0, CLO_KWOTA=0, OG_WA_PRZ=NETTO_SAD+CLO_KWOTA, NETTO=OG_WA_PRZ, VAT=NETTO*STAWKA*0.01, BRUTTO=NETTO+VAT where ID=$ipole";
+	} else {
+		$zz="update dokumentm SET KTO=$osoba_id, CZAS=Now(), NETTO_SAD=KWOTA*KURS, CLO_PODST=round(NETTO_SAD,0), CLO_KWOTA=round(CLO_PODST*CLO_PROC*0.01,0), OG_WA_PRZ=NETTO_SAD+CLO_KWOTA, NETTO=round(OG_WA_PRZ,0), VAT=round(NETTO*STAWKA*0.01,0), BRUTTO=NETTO+VAT where ID=$ipole";
+	}
+	$ww=mysql_query($zz);
+}
+
+$zz="select sum(KWOTA), sum(CLO_KWOTA), sum(VAT), sum(if(STAWKA*1=22,KWOTA,0)), sum(if(STAWKA*1=7,KWOTA,0)), sum(if(STAWKA*1=22,VAT,0)), sum(if(STAWKA*1=7,VAT,0)), sum(if(STAWKA*1=23,KWOTA,0)), sum(if(STAWKA*1=8,KWOTA,0)), sum(if(STAWKA*1=5,KWOTA,0)), sum(if(STAWKA*1=23,VAT,0)), sum(if(STAWKA*1=8,VAT,0)), sum(if(STAWKA*1=5,VAT,0)) from dokumentm where ID_D=$id_d";	//sumy dla mastera
+$ww=mysql_query($zz); $ww=mysql_fetch_row($ww);
+$www=$ww[1]*1;
+if (!$all) {
+	$wVAT=Grosz($ww[3]*0.22)+Grosz($ww[4]*0.07)+Grosz($ww[7]*0.23)+Grosz($ww[8]*0.08)+Grosz($ww[9]*0.05);
+} else {
+	$wVAT=Grosz($ww[5])+Grosz($ww[6])+Grosz($ww[10])+Grosz($ww[11])+Grosz($ww[12]);
+}
+$ww=$ww[0]*1;
+$zz="update dokumenty SET NETTOWAL=$ww, KURSC=if(KURSC=0,1,KURSC), KURSP=if(KURSP=0,1,KURSP), NETTOVAT=$ww*KURSC, NETTOPD=$ww*KURSP, CLO_KWOTA=$www, PODATEK_VAT=$wVAT, WARTOSC=NETTOVAT+CLO_KWOTA+$wVAT where ID=$id_d";
+$ww=mysql_query($zz);
+
+$zz="select sum(KWOTA) from dokumentm where ID_D=$id_d and TYP='W'";	//sumy dla mastera
+$ww=mysql_query($zz); $ww=mysql_fetch_row($ww);
+$ww=$ww[0]*1;
+$zz="update dokumenty SET NETTOWALW=$ww, NETTOVATW=$ww*KURSC, NETTOPDW=$ww*KURSP where ID=$id_d";		//update mastera
+$ww=mysql_query($zz);
+
+$zz="select sum(NETTO) from dokumentm where ID_D=$id_d and TYP='W'";	//sumy dla mastera
+$ww=mysql_query($zz); $ww=mysql_fetch_row($ww);
+$ww=$ww[0]*1;
+$zz="update dokumenty SET NETTOVATW=$ww, NETTOPDW=$ww where ID=$id_d";		//update mastera
+$ww=mysql_query($zz);
+
+$zz="select sum(KWOTA) from dokumentm where ID_D=$id_d and TYP='T'";	//sumy dla mastera
+$ww=mysql_query($zz); $ww=mysql_fetch_row($ww);
+$ww=$ww[0]*1;
+$zz="update dokumenty SET NETTOWALT=$ww, NETTOVATT=$ww*KURSC, NETTOPDT=$ww*KURSP where ID=$id_d";		//update mastera
+$ww=mysql_query($zz);
+
+$zz="select sum(NETTO) from dokumentm where ID_D=$id_d and TYP='T'";	//sumy dla mastera
+$ww=mysql_query($zz); $ww=mysql_fetch_row($ww);
+$ww=$ww[0]*1;
+$zz="update dokumenty SET NETTOVATT=$ww, NETTOPDT=$ww where ID=$id_d";		//update mastera
+$ww=mysql_query($zz);
+
+$zz="select sum(KWOTA) from dokumentm where ID_D=$id_d and TYP='U'";	//sumy dla mastera
+$ww=mysql_query($zz); $ww=mysql_fetch_row($ww);
+$ww=$ww[0]*1;
+$zz="update dokumenty SET NETTOWALU=$ww, NETTOVATU=$ww*KURSC, NETTOPDU=$ww*KURSP where ID=$id_d";		//update mastera
+$ww=mysql_query($zz);
+
+$zz="select sum(NETTO) from dokumentm where ID_D=$id_d and TYP='U'";	//sumy dla mastera
+$ww=mysql_query($zz); $ww=mysql_fetch_row($ww);
+$ww=$ww[0]*1;
+$zz="update dokumenty SET NETTOVATU=$ww, NETTOPDU=$ww where ID=$id_d";		//update mastera
+$ww=mysql_query($zz);
+
+$zz="select sum(KWOTA) from dokumentm where ID_D=$id_d and TYP='M'";	//sumy dla mastera
+$ww=mysql_query($zz); $ww=mysql_fetch_row($ww);
+$ww=$ww[0]*1;
+$zz="update dokumenty SET NETTOWALM=$ww, NETTOVATM=$ww*KURSC, NETTOPDM=$ww*KURSP where ID=$id_d";		//update mastera
+$ww=mysql_query($zz);
+
+$zz="select sum(NETTO) from dokumentm where ID_D=$id_d and TYP='M'";	//sumy dla mastera
+$ww=mysql_query($zz); $ww=mysql_fetch_row($ww);
+$ww=$ww[0]*1;
+$zz="update dokumenty SET NETTOVATM=$ww, NETTOPDM=$ww where ID=$id_d";		//update mastera
+$ww=mysql_query($zz);
+
+$zz="select sum(NETTO) from dokumentm where ID_D=$id_d";	//sumy dla mastera
+$ww=mysql_query($zz); $ww=mysql_fetch_row($ww);
+$ww=$ww[0]*1;
+$zz="update dokumenty SET NETTOVAT=$ww, NETTOPD=$ww, WARTOSC=NETTOVAT+CLO_KWOTA+PODATEK_VAT where ID=$id_d";		//update mastera
+$ww=mysql_query($zz);
+
+}
+?>

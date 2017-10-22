@@ -1,0 +1,60 @@
+<?
+//require('skladuj_zmienne.php');
+//<!-- ROZPOCZÊCIE SK£ADOWANIA ZMIENNYCH -->
+//<!-- ZMIENNE GET -->
+//<!— -->
+//<!-- ZMIENNE POST -->
+//<!—{ tak=<U>Enter</U>=<U>Z</U>apisz, opole=D, posx=8, rrr=99, rr=7, r=1, c=3, str=1, tabela=dokumentPm, tabelaa=dokumentPm, szukane=, zaznaczone=, screen_w=1024, screen_h=768, idtab=, ID=13, ID_D=, (0_0)=196/09 (E-005/09), (1_0)=, (2_0)=Cotton OE Nm 6/2, 220 T/m S, x bobbins 6\" on x pallets, (3_0)=CENDRE BLUE (51703) + DEEP WATER (51704), (4_0)=LOT Cendre blue: 139198.60    LOT Deep water: 139199.60, PALLETNO1=1, NETWEIGHT1=55, COMWEIGHT1=, GROWEIGHT1=700.00, BOBBINS1=400, CARTONS1=, PALLETS1=1, PALLETNO2=2, NETWEIGHT2=11, COMWEIGHT2=, GROWEIGHT2=2.00, BOBBINS2=39, CARTONS2=, PALLETS2=1, PALLETNO3=3, NETWEIGHT3=600.00, COMWEIGHT3=, GROWEIGHT3=700.00, BOBBINS3=1, CARTONS3=, PALLETS3=1, PALLETNO4=4, NETWEIGHT4=22.00, COMWEIGHT4=, GROWEIGHT4=33.00, BOBBINS4=5, CARTONS4=, PALLETS4=1, PALLETNO5=5, NETWEIGHT5=22.00, COMWEIGHT5=, GROWEIGHT5=33.00, BOBBINS5=5, CARTONS5=, PALLETS5=1, PALLETNO6=6, NETWEIGHT6=22.00, COMWEIGHT6=, GROWEIGHT6=33.00, BOBBINS6=5, CARTONS6=, PALLETS6=1, PALLETNO7=7, NETWEIGHT7=22.00, COMWEIGHT7=, GROWEIGHT7=33.00, BOBBINS7=5, CARTONS7=, PALLETS7=1, PALLETNO8=, NETWEIGHT8=, COMWEIGHT8=, GROWEIGHT8=, BOBBINS8=, CARTONS8=, PALLETS8=, PALLETNO9=, NETWEIGHT9=, COMWEIGHT9=, GROWEIGHT9=, BOBBINS9=, CARTONS9=, PALLETS9=, PALLETNO10=, NETWEIGHT10=, COMWEIGHT10=, GROWEIGHT10=, BOBBINS10=, CARTONS10=, PALLETS10=, PALLETNO11=, NETWEIGHT11=, COMWEIGHT11=, GROWEIGHT11=, BOBBINS11=, CARTONS11=, PALLETS11=, PALLETNO12=, NETWEIGHT12=, COMWEIGHT12=, GROWEIGHT12=, BOBBINS12=, CARTONS12=, PALLETS12=, PALLETNO13=, NETWEIGHT13=, COMWEIGHT13=, GROWEIGHT13=, BOBBINS13=, CARTONS13=, PALLETS13=, PALLETNO14=, NETWEIGHT14=, COMWEIGHT14=, GROWEIGHT14=, BOBBINS14=, CARTONS14=, PALLETS14=, PALLETNO15=, NETWEIGHT15=, COMWEIGHT15=, GROWEIGHT15=, BOBBINS15=, CARTONS15=, PALLETS15= } -->
+//<!-- ZMIENNE SESJI -->
+//<!—{ osoba_pu=1, idtab_master=6622, osoba_os=XP, osoba_upr=Arkadiusz Moch, osoba_id=1, osoba_gr=1, screen_w=1024, screen_h=768, ntab_mast=dokumentZA } -->
+//<!-- ZMIENNE COOKIE -->
+//<!—{ PHPSESSID=b383120b1525ca5b136789d7ff265b16 } -->
+//<!-- ZAKOÑCZENIE SK£ADOWANIA ZMIENNYCH -->
+
+//obliczenie jednej pozycji packing list z poziomu najg³êbszej specyfikacji (dokumentPS)
+
+$ipole=$_POST['ID'];	//pierwotne ID pozycji specyfikacji packing listy
+
+if ($ipole<>0) {
+
+	$all=false;
+	if ($ipole<0) {		//wymuszenie
+		$ipole=-$ipole;
+		$all=true;
+	}
+
+	$zz="select ID_D from dokumentPS where ID=$ipole";
+	$ww=mysql_query($zz);
+	$ww=mysql_fetch_row($ww);
+	$id_d=$ww[0];
+
+	mysql_query("delete from dokumentPS where ID_D=$id_d");
+	for($i=1;$i<16;$i++) {
+		$zz= ",'".$_POST["PALLETNO$i"]."'";
+		$zz.=",'".$_POST["NETWEIGHT$i"]."'";
+		$zz.=",'".$_POST["COMWEIGHT$i"]."'";
+		$zz.=",'".$_POST["GROWEIGHT$i"]."'";
+		$zz.=",'".$_POST["BOBBINS$i"]."'";
+		$zz.=",'".$_POST["CARTONS$i"]."'";
+		$zz.=",'".$_POST["PALLETS$i"]."'";
+		if (str_replace("'",'',str_replace(',','',$zz))<>'') {
+			$zz="insert into dokumentPS values (0,$id_d,$ido,Now()$zz)";
+			mysql_query($zz) or die(mysql_error());
+		}
+	}
+
+	$zz="select sum(BOBBINS), sum(CARTONS), sum(PALLETS), sum(NETWEIGHT), sum(COMWEIGHT), sum(GROWEIGHT) from dokumentPS where ID_D=$id_d";
+	$ww=mysql_query($zz); $ww=mysql_fetch_row($ww);
+	$bb=$ww[0];
+	$cc=$ww[1];
+	$pp=$ww[2];
+	$nw=$ww[3];
+	$cw=$ww[4];
+	$gw=$ww[5];
+	$zz="update dokumentPL SET BOBBINS=$bb, CARTONS=$cc, PALLETS=$pp, NETWEIGHT=$nw, COMWEIGHT=$cw, GROWEIGHT=$gw where ID=$id_d";
+	$ww=mysql_query($zz);
+
+}
+
+$tabelaa='dokumentPS';
+?>

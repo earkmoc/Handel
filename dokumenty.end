@@ -1,0 +1,36 @@
+<?
+
+//require('skladuj_zmienne.php');
+
+$all=false;
+if ($ipole<0) {		//wymuszenie
+	$ipole=-$ipole;
+	$all=true;
+}
+$zz="select * from dokumenty where ID=$ipole";
+$ww=mysql_query($zz);
+$ww=mysql_fetch_array($ww);
+
+if ($ww['LP']=='auto') {
+	$zz="select LP from dokumenty where TYP='".$ww['TYP']."' order by LP*1 desc limit 1";
+	$ww=mysql_query($zz);
+	$ww=mysql_fetch_array($ww);
+
+	$zz="update dokumenty SET LP='".($ww['LP']+1)."', NETTOVAT=if(NETTOVAT=0,KURSC*NETTOWAL,NETTOVAT), NETTOPD=if(NETTOPD=0,KURSP*NETTOWAL,NETTOPD) where ID=$ipole";
+	$ww=mysql_query($zz);
+}
+if ($all) {
+	$x=$ipole;
+	$ipole=-0.5;	//wymuszenie i samodzielne wyszukanie dokumentu
+	include('dokumentmA.end');
+	$ipole=$x;
+	$zz="update dokumenty SET KTO=$osoba_id, CZAS=Now(), NETTOVAT=KURSC*NETTOWAL, NETTOPD=KURSP*NETTOWAL where ID=$ipole";
+	$ww=mysql_query($zz);
+}
+else {
+//	for ($i=0;$i<count($ww);$i++) {echo $i.') '.$ww[$i].'<br>';}
+	$zz="update dokumenty SET KTO=$osoba_id, CZAS=Now() where ID=$ipole";
+	$ww=mysql_query($zz);
+}
+//exit;
+?>

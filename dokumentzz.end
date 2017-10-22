@@ -1,0 +1,10 @@
+<?php
+
+//Akcja po zapisach:
+//select ID from tabele where NAZWA=`dokumentb2`;
+//select ID_POZYCJI from tabeles where ID_TABELE=[0] and ID_OSOBY=osoba_id limit 1;
+//insert into dokumentz select 0, ID, [0], osoba_id, Now(), ``, 0 from dokum where Find_In_Set(ID,`zaznaczone`)>0
+
+$tabela=$_SESSION['tabSubNazwa'];
+require('dokumentz.php');
+?>

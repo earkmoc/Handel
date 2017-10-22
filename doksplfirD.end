@@ -1,0 +1,4 @@
+<?php
+require('dokspl.end');
+$tabelaa='dokum';
+?>

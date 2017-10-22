@@ -1,0 +1,1 @@
+C|Copy|PlikPHP('Tabela_SQL.php','Kopia dokumentu ?','insert into dokum select 0,(*)2 from dokum where ID=id_master;insert into spec select 0,id_insertef,(*)3 from spec where ID_D=id_master;update dokum set BLOKADA=`O` where ID=id_insertef')

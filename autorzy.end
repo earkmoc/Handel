@@ -1,0 +1,26 @@
+<?php
+
+if ($ipole==0) {
+	$z="Select ID from tabele where NAZWA='autorzy'";
+	$w=mysql_query($z); $w=mysql_fetch_row($w); $w=$w[0];
+
+	$z="Select ID_POZYCJI from tabeles where ID_TABELE=$w and ID_OSOBY=$ido";	//jest ID dokum
+	$w=mysql_query($z); $w=mysql_fetch_row($w);
+	$ipole=$w[0];
+}
+
+$z="update autorzy set ";
+$z.="WARTOSC=if(WARTOSC<>0,WARTOSC,CENA*ILOSC),";
+$z.="WARTOSCB=if(WARTOSCB<>0,WARTOSCB,WARTOSC),";
+$z.="WARTOSCK=if(WARTOSCK<>0,WARTOSCK,WARTOSCB*PROCENTK*0.01),";
+$z.="WARTOSCD=if(WARTOSCD<>0,WARTOSCD,WARTOSCB-WARTOSCK),";
+$z.="WARTOSCP=if(WARTOSCP<>0,WARTOSCP,WARTOSCD*PROCENTP*0.01),";
+$z.="WARTOSCW=if(WARTOSCW<>0,WARTOSCW,WARTOSCB-WARTOSCP)";
+$z.=" where ID=$ipole limit 1";
+$w=mysql_query($z);
+
+$tabelaa='autorzy';	// tu l¹duje po akcji
+
+//echo $raport;
+?>
+

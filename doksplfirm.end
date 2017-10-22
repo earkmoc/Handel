@@ -1,0 +1,55 @@
+<?php
+
+$all=false;
+if ($ipole<0) {
+	$ipole=-$ipole;		//przywróæ prawid³owy znak $ipole
+	$all=true;		//wszystko trzeba obliczyæ
+}
+
+if ($ipole==0) {
+	$zz="Select ID from tabele where NAZWA='doksplfirm'";
+	$ww=mysql_query($zz); $ww=mysql_fetch_row($ww); $ww=$ww[0];
+
+	$zz="Select ID_POZYCJI from tabeles where ID_TABELE=$ww and ID_OSOBY=$ido";	//jest ID firmy
+	$ww=mysql_query($zz); $ww=mysql_fetch_row($ww); $ipole=$ww[0];
+}
+
+$zz="select ID_D, ID_F, KWOTA from dokspl where ID=$ipole";
+$ww=mysql_query($zz);
+$ww=mysql_fetch_row($ww);
+$id_d=$ww[0];
+$id_f=$ww[1];
+$kwota=$ww[2];
+
+require('Rozlicz_ini.php');
+$tabelaa='dokum_firm';
+
+$zz="select sum(KWOTA) from dokspl where ID_D=$id_d";
+$ww=mysql_query($zz);
+$ww=mysql_fetch_row($ww);
+$ww=$ww[0];
+
+$zz="update dokum SET WPLACONO=WPLACONO+$kwota where ID=$id_d";
+$ww=mysql_query($zz);
+
+$zz=("select sum(if(right(TYP,1)<>'K',WARTOSC,0))
+           , sum(WPLACONO)
+           , sum(if(UWAGI like '%korekta%',UWAGI*1,0))
+           , sum(if(right(TYP,1)='K',WARTOSC,0)) 
+        from dokum 
+       where NABYWCA=$id_f and BLOKADA=''
+");
+$ww=mysql_query($zz);
+if ($ww=mysql_fetch_row($ww)) {
+   $zz="update firmy 
+           set NALEZNOSCI=$ww[0]-$ww[2]
+             , ZALICZKI=$ww[1]
+             , KOREKTY=$ww[2]-$ww[3] 
+         where ID=$id_f";
+   $ww=mysql_query($zz);
+//$zz;exit;
+}
+
+$zz="delete from dokspl where KWOTA=0 and ID_F=$id_f";
+$ww=mysql_query($zz);
+?>

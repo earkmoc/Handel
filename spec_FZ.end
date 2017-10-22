@@ -1,0 +1,11 @@
+<?php
+
+//require('skladuj_zmienne.php');
+
+//$tabelaa='spec_FZ';
+$tabelaa='towarywybz';
+$tabelad='dokum_FZ';
+
+require('spec_calc.php');
+
+?>

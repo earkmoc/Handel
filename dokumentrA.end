@@ -1,0 +1,17 @@
+<?
+
+$all=false;
+if ($ipole<0) {		//wymuszenie
+	$ipole=-$ipole;
+	$all=true;
+}
+
+$zz="select * from dokumentr where ID=$ipole";
+$ww=mysql_query($zz);
+$ww=mysql_fetch_array($ww);
+
+$idd=$ww['ID_D'];
+
+$zz="update dokumentr SET KTO=$osoba_id, CZAS=Now(), NETTO=(round(KWOTA*KURS,2)), VAT=(round(NETTO*STAWKA*0.01,2)), BRUTTO=(round(NETTO+VAT,2)) where ID_D=$idd";
+$ww=mysql_query($zz);
+?>

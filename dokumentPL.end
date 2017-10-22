@@ -1,0 +1,27 @@
+<?
+
+//obliczenie jednej pozycji packing list z poziomu najg³êbszej specyfikacji (dokumentPS)
+
+if ($ipole<>0) {
+
+	$all=false;
+	if ($ipole<0) {		//wymuszenie
+		$ipole=-$ipole;
+		$all=true;
+	}
+
+	$id_d=$ipole;
+
+	$zz="select sum(BOBBINS), sum(CARTONS), sum(PALLETS), sum(NETWEIGHT), sum(COMWEIGHT), sum(GROWEIGHT) from dokumentPS where ID_D=$id_d";
+	$ww=mysql_query($zz); $ww=mysql_fetch_row($ww);
+	$bb=$ww[0];
+	$cc=$ww[1];
+	$pp=$ww[2];
+	$nw=$ww[3];
+	$cw=$ww[4];
+	$gw=$ww[5];
+	$zz="update dokumentPL SET BOBBINS=$bb, CARTONS=$cc, PALLETS=$pp, NETWEIGHT=$nw, COMWEIGHT=$cw, GROWEIGHT=$gw where ID=$id_d";
+	$ww=mysql_query($zz);
+
+}
+?>

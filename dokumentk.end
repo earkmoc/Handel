@@ -1,0 +1,4 @@
+<?
+$zz="update dokumentk SET KTO=$osoba_id, CZAS=Now() where ID=$ipole";
+$ww=mysql_query($zz);
+?>

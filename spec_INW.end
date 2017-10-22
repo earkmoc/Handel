@@ -1,0 +1,8 @@
+<?php
+
+$tabelaa='spec_INW';
+$tabelad='dokum_INW';
+
+require('spec_calc.php');
+
+?>

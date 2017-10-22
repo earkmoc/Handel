@@ -1,0 +1,154 @@
+<?php
+
+//require('skladuj_zmienne.php');exit;
+
+$listaodsetek=$_SESSION['listaodsetek'];
+
+$all=false;
+if ($ipole<0) {
+	$ipole=-$ipole;		//przywróć prawidłowy znak $ipole
+	$all=true;		//wszystko trzeba obliczyć
+}
+
+$zz="select ID_D, ID_F, KWOTA, ODSETKI, DATAW, KASABANK, UWAGI from dokspl where ID=$ipole";
+$ww=mysql_query($zz);
+$ww=mysql_fetch_row($ww);
+$id_d=$ww[0];
+$id_f=$ww[1];
+$splata=$ww[2];
+$odsetki=$ww[3];
+$dataw=$ww[4];
+$kasabank=$ww[5];
+$uwagi=$ww[6];
+
+if ($zaznaczone) {
+   $sumasplat=$ww[2];
+   $idds=explode(',',$zaznaczone);  //tablica identyfikatorów dokumentów
+   $odds=explode(',',$listaodsetek);
+
+   if ($odsetki==0) {               //jak ktoś wyzerował odsetki sumaryczne
+      for ($i=0;$i<count($odds);$i++) {   //to trzeba wyzerować wszystkie składnikowe
+         $odds[$i]=0;
+      }
+   }
+} else {
+   $idds[0]=$id_d;                  //tablica z 1 identyfikatorem dokumentu, tj. tym na którym stoi
+   $odds[0]=$odsetki;
+}
+
+for ($i=0;$i<count($idds);$i++) {
+
+   $id_d=$idds[$i];
+   $odsetki=$odds[$i];
+
+   $zz="select WARTOSC-WPLACONO, DATAT, DateDiff('$dataw',DATAT), TYP, NABYWCA from dokum where ID=$id_d";
+   $ww=mysql_query($zz);
+   $ww=mysql_fetch_row($ww);
+   $dozaplaty=$ww[0];
+   $datat=$ww[1];
+   $dniodsetek=$ww[2];
+
+   if (substr($ww[3],1,1)=='A') {	//dokument Allegrowy
+   	if ($kasabank=='BANK') {
+   		$kasabank='ALLE';
+   	}
+   }
+
+   $id_f=$ww[4];
+
+   if ($zaznaczone) {
+
+      $ww=mysql_query("
+      	  select count(*)
+             from dokspl 
+            where ID_D=$id_d 
+      ");
+      $rr=mysql_fetch_row($ww);
+      $id_x=$rr[0]+1;
+   
+      if ($sumasplat>=$dozaplaty+$odsetki) {
+         $splata=$dozaplaty+$odsetki;
+      } else {
+         $splata=$sumasplat;
+      }
+      $sumasplat-=$splata;
+
+      if ($i>0) {          //potrzebne nowe zapisy dla kolejnych dokumentów
+         mysql_query("
+         	insert
+              into dokspl 
+         		set ID_F=$id_f
+                  ,ID_X=$id_x
+                  ,ID_D=$id_d
+                  ,DATAW='$dataw'
+                  ,UWAGI='$uwagi'
+         ");
+      }
+   }
+   
+   if ($splata==$dozaplaty+$odsetki) {	//jedna rata: należność + odsetki
+   	$splata=$dozaplaty;				   //cała należność główna spłacona, a odsetki osobno
+   	$odsetkiodkwoty=$dozaplaty;		//odsetki od kwoty
+   } elseif ($splata<$dozaplaty+$odsetki) {
+   	require_once('funkcje.php');
+   	$odsetki=myRound($odsetki*($splata/($dozaplaty+$odsetki)));	//proporcjonalnie zmniejszam odsetki
+   	$splata=$splata-$odsetki;		//zmniejszam spłatę należności głównej
+   	$odsetkiodkwoty=$splata;		//odsetki od kwoty
+   } else {
+   	$splata=$splata-$odsetki;		//potrącam odsetki
+   	$odsetkiodkwoty=$dozaplaty;		//odsetki tylko od kwoty do zapłaty, a reszta to czysta nadpłata
+   }
+   
+   mysql_query("
+   	update dokspl 
+   		set KWOTA=$splata
+   		  , ODSETKI=$odsetki
+   		  , KASABANK='$kasabank'
+         where ID_D=$id_d 
+      order by ID desc 
+         limit 1
+   ");
+   
+   $zz="update dokum SET WPLACONO=WPLACONO+$splata where ID=$id_d";
+   $ww=mysql_query($zz);
+   
+   require('Rozlicz_ini.php');   //zmienia format "splata"
+   
+   $zz="select sum(KWOTA) from dokspl where ID_D=$id_d";
+   $ww=mysql_query($zz);
+   $ww=mysql_fetch_row($ww);
+   $ww=$ww[0];
+   
+   $zz=("select sum(if(right(TYP,1)<>'K',WARTOSC,0))
+              , sum(WPLACONO)
+              , sum(if(UWAGI like '%korekta%',UWAGI*1,0))
+              , sum(if(right(TYP,1)='K',WARTOSC,0)) 
+           from dokum 
+          where NABYWCA=$id_f 
+   	     and BLOKADA=''
+            and TYP<>'INW' 
+            and TYP<>'ZAM' 
+            and TYP<>'ZNI' 
+            and TYP<>'ZW' 
+   ");
+   $ww=mysql_query($zz);
+   if ($ww=mysql_fetch_row($ww)) {
+      $ww[0]=$ww[0]*1;
+      $ww[1]=$ww[1]*1;
+      $ww[2]=$ww[2]*1;
+      $ww[3]=$ww[3]*1;
+      $zz="update firmy 
+              set NALEZNOSCI=$ww[0]-$ww[2]
+                , ZALICZKI=$ww[1]
+                , KOREKTY=$ww[2]-$ww[3] 
+            where ID=$id_f";
+      $ww=mysql_query($zz);
+   //$zz;exit;
+   }
+   
+   $zz="delete from dokspl where KWOTA=0 and ID_F=$id_f";
+   $ww=mysql_query($zz);
+
+}
+
+$_SESSION['listaodsetek']='';
